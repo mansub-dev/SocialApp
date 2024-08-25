@@ -360,10 +360,10 @@ export default function ThreadForm({ toggleForm }) {
 
           <div className="flex md:justify-between md:gap-4 md:mt-6">
             <button
-              className={`border border-gray-100 px-4 py-2 rounded-xl dark:border-neutral-700  ${
+              className={`border border-gray-100  px-4 py-2 rounded-xl dark:border-neutral-700  ${
                 threadText.trim()
-                  ? "text-white "
-                  : "text-gray-500 cursor-not-allowed"
+                  ? "text-black dark:text-white "
+                  : "text-gray-700 cursor-not-allowed"
               }`}
               onClick={handlePostClick}
               disabled={!threadText.trim()}
@@ -382,7 +382,7 @@ export default function ThreadForm({ toggleForm }) {
             <div className="mt-8 flex justify-around   ">
               <button
                 onClick={handleConfirmationCancel}
-                className="text-white "
+                className="text-black dark:text-white "
               >
                 Cancel
               </button>
