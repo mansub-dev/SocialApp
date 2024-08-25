@@ -60,7 +60,7 @@ export default function Sidebar() {
           />
           <h3 className="text-l dark:bg-black dark:text-white">Appearance</h3>
         </div>
-        <div className="flex justify-around items-center md:w-[365px] h-[60px] w-54 rounded-lg bg-gray-100/50 dark:bg-black dark:text-white">
+        <div className="flex justify-around items-center md:w-[365px] h-[60px] w-60 rounded-lg bg-gray-100/50 dark:bg-black dark:text-white">
           <div className="appearence-btns" onClick={() => setTheme("light")}>
             <CiLight size={25} />
           </div>
@@ -174,7 +174,7 @@ export default function Sidebar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="fixed top-0 left-4 w-full h-full z-50 md:bg-black/50 md:hidden">
+        <div className="fixed top-0 left-7 w-full h-full z-50 md:bg-black/50 md:hidden">
           <button
             onClick={() => setMenuOpen(false)}
             className="text-xl font-bold mb-6"
