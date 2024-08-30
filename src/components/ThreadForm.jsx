@@ -1,12 +1,12 @@
 import { useApp } from "../AppContext";
 import { CiFileOn } from "react-icons/ci";
-import { CgProfile } from "react-icons/cg";
 import EmojiPicker from "emoji-picker-react";
-import { supabase } from "../supabaseClient";
 import { BsFiletypeGif } from "react-icons/bs";
 import { BiMenuAltLeft } from "react-icons/bi";
 import { AiOutlineClose } from "react-icons/ai";
 import { useState, useRef, useEffect } from "react";
+import { useUploadPost } from "./UploadPost";
+import { RenderProfilePic } from "./FeedItem";
 
 export default function ThreadForm({ toggleForm }) {
   const [file, setFile] = useState(null);
@@ -15,12 +15,13 @@ export default function ThreadForm({ toggleForm }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { threadText, userName, setThreadText } = useApp();
   const [pollOptions, setPollOptions] = useState(["Yes", "No"]);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { profilePic, userName, threadText, setThreadText } = useApp();
   const [dropdownOption, setDropdownOption] = useState(
     "Anyone can reply & quote"
   );
+  const { mutate } = useUploadPost(toggleForm);
 
   const pollRef = useRef(null);
   const formRef = useRef(null);
@@ -43,77 +44,29 @@ export default function ThreadForm({ toggleForm }) {
       reader.readAsDataURL(selectedFile);
     }
   };
+
   const handlePostClick = async () => {
-    console.log("Post button clicked");
-
     setShowUpload(true);
-
-    setShowUpload(true);
-
+    if (!threadText.trim()) {
+      console.error("Thread text cannot be empty");
+      return;
+    }
     if (!file) {
       console.error("No file selected");
       return;
     }
 
-    try {
-      // Upload the file to the Supabase storage bucket
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (userError || !user) {
-        console.error(
-          "User not authenticated or error getting user data:",
-          userError
-        );
-        return;
+    mutate(
+      { file, threadText },
+      {
+        onSuccess: () => {
+          setThreadText("");
+          setShowUpload(false);
+        },
       }
-
-      const filePath = `${user.id}_${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
-        .from("posts_images")
-        .upload(filePath, file);
-
-      if (error) {
-        console.error("Error uploading file:", error.message);
-        return;
-      }
-
-      console.log("File uploaded successfully:", data.Key);
-
-      // Get the public URL of the uploaded file
-      const { data: publicURLData, error: urlError } = supabase.storage
-        .from("posts_images")
-        .getPublicUrl(filePath);
-
-      if (urlError) {
-        console.error("Failed to generate public URL:", urlError.message);
-        return;
-      }
-      const publicURL = publicURLData?.publicUrl;
-      console.log("Public URL of the uploaded file:", publicURL);
-
-      if (!publicURL) {
-        console.error("Public URL is not available.");
-        return;
-      }
-
-      // Insert the file URL and thread text into the 'posts' table
-      const { data: postData, error: postError } = await supabase
-        .from("posts")
-        .insert([
-          { post_image: publicURL, post_text: threadText, user_id: user.id },
-        ]);
-
-      if (postError) {
-        console.error("Error inserting post:", postError.message);
-      } else {
-        console.log("Post added successfully:", postData);
-      }
-    } catch (err) {
-      console.error("Error during post creation:", err);
-    }
+    );
   };
+
   const handleEmojiClick = (emojiObject) => {
     setThreadText((prevText) => prevText + emojiObject.emoji);
     setShowEmojiPicker(false);
@@ -162,6 +115,7 @@ export default function ThreadForm({ toggleForm }) {
   const handleDiscardClick = () => {
     setShowConfirmation(false);
     toggleForm();
+    setThreadText("");
   };
 
   const handleConfirmationCancel = () => {
@@ -199,15 +153,8 @@ export default function ThreadForm({ toggleForm }) {
         } w-full h-full md:h-fit flex flex-col overflow-y-auto max-h-[500px]`}
       >
         <div className="flex gap-2 mb-2">
-          {profilePic ? (
-            <img
-              src={profilePic}
-              alt="Profile"
-              className="rounded-full w-10 h-10 object-cover"
-            />
-          ) : (
-            <CgProfile size={30} className="rounded-full w-10 h-10" />
-          )}
+          {RenderProfilePic("w-10 h-10")}
+
           <div className="flex flex-col m-0 p-0 items-start flex-grow">
             <h4 className="font-semibold">{userName}</h4>
             <textarea
@@ -297,15 +244,7 @@ export default function ThreadForm({ toggleForm }) {
           </div>
         </div>
         <div className="flex gap-2 m-2">
-          {profilePic ? (
-            <img
-              src={profilePic}
-              alt="Profile"
-              className="rounded-full w-6 h-6 object-cover"
-            />
-          ) : (
-            <CgProfile size={30} className="rounded-full w-6 h-6" />
-          )}
+          {RenderProfilePic("w-6 h-6")}
           <textarea
             className="w-full font-gray-500 rounded-lg resize-none outline-none dark:text-white dark:bg-neutral-900"
             rows={1}
@@ -396,6 +335,7 @@ export default function ThreadForm({ toggleForm }) {
           </div>
         </div>
       )}
+      {showUpload && <p className="message">Uploading, please wait...</p>}{" "}
     </div>
   );
 }
