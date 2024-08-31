@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useState, useEffect, useContext } from "react";
 
 const AppContext = createContext();
@@ -14,6 +14,9 @@ export const AppProvider = ({ children }) => {
   const [profilePic, setProfilePic] = useState("");
   const [threadText, setThreadText] = useState("");
   const [userPosts, setUserPosts] = useState([]);
+  const [session, setSession] = useState(null);
+
+  const queryClient = useQueryClient();
 
   // Theme handling
   useEffect(() => {
@@ -96,6 +99,56 @@ export const AppProvider = ({ children }) => {
     return data;
   };
 
+  useEffect(() => {
+    // Check for an existing session when the app loads
+    const checkSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error("Error fetching session:", error);
+        return;
+      }
+
+      console.log("Session on load:", session); // Debugging log
+
+      if (session) {
+        setSession(session);
+        queryClient.invalidateQueries(["userDetails"]); // Refetch user details
+        queryClient.invalidateQueries(["posts"]); // Refetch user posts
+      }
+    };
+
+    checkSession();
+
+    // Subscribe to auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state change:", event, session); // Debugging log
+        setSession(session);
+
+        if (event === "SIGNED_OUT") {
+          queryClient.clear(); // Clear all React Query caches
+          setUserName("");
+          setFullName("");
+          setBio("");
+          setLink("");
+          setProfilePic("");
+          setUserPosts([]);
+        } else if (session) {
+          queryClient.invalidateQueries(["userDetails"]); // Refetch user details
+          queryClient.invalidateQueries(["posts"]); // Refetch user posts
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
   const {
     data: userDetails,
     isLoading: userLoading,
@@ -104,6 +157,7 @@ export const AppProvider = ({ children }) => {
     queryKey: ["userDetails"],
     queryFn: fetchUserDetails,
     staleTime: 5000,
+    enabled: !!session, // Only run the query if there's an active session
   });
 
   const {
@@ -113,6 +167,7 @@ export const AppProvider = ({ children }) => {
   } = useQuery({
     queryKey: ["posts"],
     queryFn: fetchUserPosts,
+    enabled: !!session, // Only run the query if there's an active session
   });
 
   if (userLoading || postsLoading) {
@@ -144,6 +199,7 @@ export const AppProvider = ({ children }) => {
         setPostPic,
         userPosts,
         setUserPosts,
+        session,
       }}
     >
       {children}
