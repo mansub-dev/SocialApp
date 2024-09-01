@@ -51,7 +51,7 @@ export const AppProvider = ({ children }) => {
   });
 
   if (userLoading || postsLoading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (userError || postsError) {
