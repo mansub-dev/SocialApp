@@ -1,5 +1,3 @@
-//Changed
-
 import { useRef, useEffect, useState } from "react";
 import { useApp } from "../AppContext";
 import { supabase } from "../supabaseClient";
