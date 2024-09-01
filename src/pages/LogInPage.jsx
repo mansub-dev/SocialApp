@@ -1,3 +1,5 @@
+//Changed
+
 import { useState } from "react";
 import { useApp } from "../AppContext";
 import { supabase } from "../supabaseClient";
@@ -39,7 +41,7 @@ export default function LogIn() {
         });
         setTimeout(() => {
           navigate("/Home");
-        }, 2000); // Delay navigation to show the message
+        }, 1000);
       }
     } catch (error) {
       console.error("Unexpected error:", error.message);
