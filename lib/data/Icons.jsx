@@ -6,6 +6,7 @@ import { VscPinned } from "react-icons/vsc";
 import { BiMenuAltLeft } from "react-icons/bi";
 import { IoMoonOutline } from "react-icons/io5";
 import { GoPaperAirplane } from "react-icons/go";
+import { VscHeartFilled } from "react-icons/vsc";
 import { AiOutlineRetweet } from "react-icons/ai";
 import { MdOutlineModeComment } from "react-icons/md";
 import { FaRegHeart, FaRegUser, FaRegEdit } from "react-icons/fa";
@@ -25,7 +26,12 @@ export function Light() {
 export function Search() {
   return <FiSearch size={30} color="gray" />;
 }
-
+export function SimpleRepost({ ...rest }) {
+  return <AiOutlineRetweet size={20} {...rest} color="gray" />;
+}
+export function FilledRepost({ ...rest }) {
+  return <AiOutlineRetweet size={20} {...rest} color="green" />;
+}
 export function Pinned() {
   return <VscPinned size={30} color="gray" />;
 }
@@ -52,18 +58,19 @@ export function HeartOutline({ ...rest }) {
 export function Share({ ...rest }) {
   return <GoPaperAirplane size={20} {...rest} color="gray" />;
 }
-export function Repost({ ...rest }) {
-  return <AiOutlineRetweet size={20} {...rest} color="gray" />;
-}
 
 export function Comment({ ...rest }) {
   return <MdOutlineModeComment size={20} {...rest} color="gray" />;
 }
 
+export function RedHeart() {
+  return <VscHeartFilled size={20} color="red" />;
+}
+
 export function ActionButton({ Icon, info }) {
   return (
-    <div className="flex cursor-pointer font-extralight text-base text-gray-400 items-center gap-1 py-1.5 px-1 rounded-full hover:bg-slate-800 ">
-      <Icon size={25} className="p-1" /> <div>{info}</div>
+    <div className="flex cursor-pointer font-extralight text-base text-gray-400 items-center gap-1">
+      <Icon size={35} className="p-2" /> <div>{info}</div>
     </div>
   );
 }

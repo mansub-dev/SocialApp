@@ -1,13 +1,12 @@
+import { supabase } from "../../supabaseClient";
 import React, { useReducer, useCallback, useEffect } from "react";
 import { RedHeart, HeartOutline, ActionButton } from "../../../lib/data/Icons";
-import { supabase } from "../../supabaseClient";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const initialState = {
   liked: false,
   count: 0,
 };
-
 const reducer = (state, action) => {
   switch (action.type) {
     case "SET_LIKE_STATE":
@@ -24,7 +23,6 @@ const reducer = (state, action) => {
       return state;
   }
 };
-
 const fetchLikeData = async (postId) => {
   const {
     data: { user },
@@ -49,14 +47,9 @@ const fetchLikeData = async (postId) => {
 
   if (postError) console.error("Error fetching post data:", postError);
 
-  console.log("Fetched like data:", {
+  return {
     liked: !!likeData,
     count: postData?.like_count || 0,
-  });
-
-  return {
-    liked: !!likeData, // If likeData exists, the user has liked the post
-    count: postData?.like_count || 0, // Set count to the current post's like count
   };
 };
 
@@ -67,13 +60,21 @@ const updateLikeStatus = async ({ postId, liked }) => {
   } = await supabase.auth.getUser();
   if (userError || !user) throw new Error("User not authenticated");
 
+  const { data: userDetails, error: userDetailsError } = await supabase
+    .from("usersDetails")
+    .select("user_name, profile_url")
+    .eq("user_id", user.id)
+    .single();
+
+  if (userDetailsError) throw new Error("Error fetching user details");
+
   const { data: postData, error: postError } = await supabase
     .from("posts")
-    .select("like_count")
+    .select("like_count, user_id")
     .eq("post_id", postId)
     .single();
 
-  if (postError) throw new Error("Error fetching post count");
+  if (postError) throw new Error("Error fetching post data");
 
   let updatedLikeCount;
 
@@ -92,9 +93,15 @@ const updateLikeStatus = async ({ postId, liked }) => {
     });
 
     updatedLikeCount = postData.like_count + 1;
-  }
 
-  // Update the like count in the posts table
+    await supabase.from("notifications").insert({
+      user_id: postData.user_id,
+      post_id: postId,
+      type: "like",
+      message: `${userDetails.user_name} liked your post`,
+      profile_url: userDetails.profile_url,
+    });
+  }
   await supabase
     .from("posts")
     .update({ like_count: updatedLikeCount })
@@ -107,36 +114,31 @@ export default function Like({ postId }) {
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Fetch the initial like data on component mount or refresh
   const { data, isError, isLoading } = useQuery({
     queryKey: ["likeData", postId],
     queryFn: () => fetchLikeData(postId),
     onSuccess: (data) => {
-      // Ensure state is updated after fetching
       dispatch({ type: "SET_LIKE_STATE", payload: data });
     },
-    refetchOnWindowFocus: false, // Avoid unnecessary refetching
+    refetchOnWindowFocus: false,
   });
 
   // Mutation for liking/disliking the post
   const { mutate } = useMutation({
     mutationFn: ({ postId, liked }) => updateLikeStatus({ postId, liked }),
     onMutate: async ({ liked }) => {
-      // Optimistically update UI before server response
       dispatch({
         type: "SET_LIKE_STATE",
         payload: {
-          liked: !liked, // Toggle the liked state
-          count: state.count + (liked ? -1 : 1), // Decrease count if currently liked, otherwise increase
+          liked: !liked,
+          count: state.count + (liked ? -1 : 1),
         },
       });
     },
     onSuccess: () => {
-      // Refetch the data to ensure it's up-to-date
       queryClient.invalidateQueries({ queryKey: ["likeData", postId] });
     },
     onError: (error, { liked }) => {
-      // Rollback on error
       dispatch({
         type: "SET_LIKE_STATE",
         payload: { liked, count: state.count },
@@ -156,7 +158,10 @@ export default function Like({ postId }) {
   }, [data]);
 
   return (
-    <div onClick={handleLikeClick} style={{ cursor: "pointer" }}>
+    <div
+      onClick={handleLikeClick}
+      className="flex items-center w-fit hover:bg-stone-300 cursor-pointer dark:hover:bg-slate-900 rounded-full p-1"
+    >
       <ActionButton
         Icon={state.liked ? RedHeart : HeartOutline}
         info={state.count > 0 ? state.count : ""}

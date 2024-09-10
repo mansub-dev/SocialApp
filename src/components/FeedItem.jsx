@@ -1,8 +1,9 @@
 import { useApp } from "../AppContext";
+import { useNavigate } from "react-router";
+import { Avatar } from "../../lib/data/Icons";
 import Like from "./ActionButtons/Like";
 import Comments from "./ActionButtons/Comments";
 import SharePost from "./ActionButtons/SharePost";
-import { Avatar, Repost, ActionButton } from "../../lib/data/Icons";
 
 export const RenderProfilePic = (
   size = "w-10 h-10",
@@ -27,15 +28,26 @@ export const RenderProfilePic = (
   );
 };
 
-export default function FeedItems() {
-  const { userPosts } = useApp();
+export default function FeedItems({ filterByUser = false, userId = null }) {
+  const { userPosts, userDetails } = useApp();
+  const navigate = useNavigate();
+
+  const currentUserId = userDetails?.user_id;
+  const PostClicked = (postId) => {
+    navigate(`/feed/${postId}`);
+  };
+
+  // Filter posts if `filterByUser` is true
+  const displayedPosts = filterByUser
+    ? userPosts.filter((post) => post.user_id === currentUserId)
+    : userPosts;
 
   return (
     <div>
       <div className="mt-4 flex flex-col gap-4 md:p-4">
-        {userPosts.length > 0 ? (
-          userPosts.map((post, index) => (
-            <div key={index} className="flex flex-col gap-4">
+        {displayedPosts.length > 0 ? (
+          displayedPosts.map((post) => (
+            <div key={post.post_id} className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 {post.profile_author ? (
                   <img
@@ -46,28 +58,30 @@ export default function FeedItems() {
                 ) : (
                   <Avatar size={30} className="rounded-full w-10 h-10" />
                 )}
-                <h3>{post.post_author}</h3>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="post-content">
+
+                <div className="flex flex-col">
+                  <h3>{post.post_author}</h3>
                   <p
                     className="whitespace-pre-wrap"
-                    style={{ whiteSpace: "pre-wrap" }}
+                    onClick={() => PostClicked(post.post_id)}
                   >
                     {post.post_text}
                   </p>
                 </div>
+              </div>
+              <div className="flex ml-10 flex-col gap-1">
                 {post.post_image && (
                   <img
                     src={post.post_image}
                     alt="Post Image"
                     className="rounded-md w-full"
+                    onClick={() => PostClicked(post.post_id)}
                   />
                 )}
-                <div className="flex gap-1 mt-4">
+                <div className="flex items-center gap-1 mt-2">
                   <Like postId={post.post_id} />
                   <Comments postId={post.post_id} />
-                  <ActionButton Icon={Repost} info={24} />
+
                   <SharePost
                     postUrl={`https://connectifi.netlify.app/post/${post.post_id}`}
                   />
