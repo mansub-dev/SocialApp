@@ -22,7 +22,7 @@ export const fetchUserDetails = async () => {
   if (error) throw new Error(error.message);
 
   const { publicURL, error: urlError } = supabase.storage
-    .from("profile_picture")
+    .from("profilepicture")
     .getPublicUrl(data.profile_url);
 
   if (urlError) throw new Error(urlError.message);
@@ -55,7 +55,7 @@ export const fetchPostDetails = async (postId) => {
   const { data, error } = await supabase
     .from("posts")
     .select("*")
-    .eq("post_id", postId)
+    .eq("id", postId)
     .single();
 
   if (error) throw new Error(error.message);

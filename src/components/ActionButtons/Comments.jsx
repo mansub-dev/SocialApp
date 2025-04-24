@@ -25,13 +25,13 @@ const addComment = async (commentData) => {
 
   if (selectedFile) {
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("Comment_pictures")
+      .from("commentpictures")
       .upload(`files/${selectedFile.name}`, selectedFile);
 
     if (uploadError) throw uploadError;
 
     const { data: publicUrlData } = supabase.storage
-      .from("Comment_pictures")
+      .from("commentpictures")
       .getPublicUrl(uploadData.path);
 
     fileUrl = publicUrlData.publicUrl;
@@ -51,7 +51,7 @@ const addComment = async (commentData) => {
   const { data: post, error: fetchError } = await supabase
     .from("posts")
     .select("comment_count")
-    .eq("post_id", postId)
+    .eq("id", postId)
     .single();
 
   if (fetchError) throw fetchError;
@@ -61,7 +61,7 @@ const addComment = async (commentData) => {
   const { error: postError } = await supabase
     .from("posts")
     .update({ comment_count: newCommentCount })
-    .eq("post_id", postId);
+    .eq("id", postId);
 
   if (postError) throw postError;
 };

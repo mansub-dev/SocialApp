@@ -31,7 +31,7 @@ export default function FeedPage() {
       const { data: post, error: fetchError } = await supabase
         .from("posts")
         .select("comment_count")
-        .eq("post_id", postId)
+        .eq("id", postId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -48,7 +48,7 @@ export default function FeedPage() {
       const { error: updateError } = await supabase
         .from("posts")
         .update({ comment_count: newCommentCount })
-        .eq("post_id", postId);
+        .eq("id", postId);
 
       if (updateError) throw updateError;
     },
@@ -65,7 +65,7 @@ export default function FeedPage() {
   useEffect(() => {
     const fetchPost = () => {
       const foundPost = userPosts.find(
-        (post) => parseInt(post.post_id) === parseInt(postId)
+        (post) => parseInt(post.id) === parseInt(postId)
       );
       setPost(foundPost);
     };
@@ -123,10 +123,10 @@ export default function FeedPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 mt-2">
-                  <Like postId={post.post_id} />
-                  <Comments postId={post.post_id} />
+                  <Like postId={post.id} />
+                  <Comments postId={post.id} />
                   <SharePost
-                    postUrl={`https://connectifi.netlify.app/post/${post.post_id}`}
+                    postUrl={`https://connectiffi.netlify.app/post/${post.id}`}
                   />
                 </div>
               </div>

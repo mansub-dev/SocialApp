@@ -42,7 +42,7 @@ const fetchLikeData = async (postId) => {
   const { data: postData, error: postError } = await supabase
     .from("posts")
     .select("like_count")
-    .eq("post_id", postId)
+    .eq("id", postId)
     .single();
 
   if (postError) console.error("Error fetching post data:", postError);
@@ -71,7 +71,7 @@ const updateLikeStatus = async ({ postId, liked }) => {
   const { data: postData, error: postError } = await supabase
     .from("posts")
     .select("like_count, user_id")
-    .eq("post_id", postId)
+    .eq("id", postId)
     .single();
 
   if (postError) throw new Error("Error fetching post data");
@@ -96,7 +96,7 @@ const updateLikeStatus = async ({ postId, liked }) => {
 
     await supabase.from("notifications").insert({
       user_id: postData.user_id,
-      post_id: postId,
+      id: postId,
       type: "like",
       message: `${userDetails.user_name} liked your post`,
       profile_url: userDetails.profile_url,
@@ -105,7 +105,7 @@ const updateLikeStatus = async ({ postId, liked }) => {
   await supabase
     .from("posts")
     .update({ like_count: updatedLikeCount })
-    .eq("post_id", postId);
+    .eq("id", postId);
 
   return { liked: !liked, count: updatedLikeCount };
 };

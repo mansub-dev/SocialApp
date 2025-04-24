@@ -18,7 +18,7 @@ const handleFileUpload = async ({
   if (file) {
     const filePath = `${user.id}_${Date.now()}_${file.name}`; // Unique file path
     const { data, error } = await supabase.storage
-      .from("posts_images")
+      .from("postsimages")
       .upload(filePath, file);
 
     if (error) {
@@ -26,7 +26,7 @@ const handleFileUpload = async ({
     }
 
     const { data: publicURLData, error: urlError } = supabase.storage
-      .from("posts_images")
+      .from("postsimages")
       .getPublicUrl(filePath);
 
     if (urlError) {

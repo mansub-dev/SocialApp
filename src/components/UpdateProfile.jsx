@@ -15,7 +15,7 @@ const uploadProfilePic = async (file) => {
 
   // Upload file to Supabase storage
   const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("profile_picture")
+    .from("profilepicture")
     .upload(filePath, file, { upsert: true });
 
   if (uploadError) {
@@ -24,7 +24,7 @@ const uploadProfilePic = async (file) => {
 
   // Retrieve the public URL for the uploaded file
   const { data: publicURLData, error: urlError } = supabase.storage
-    .from("profile_picture")
+    .from("profilepicture")
     .getPublicUrl(filePath);
 
   if (urlError) {

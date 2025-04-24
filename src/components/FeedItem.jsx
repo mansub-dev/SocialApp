@@ -27,7 +27,6 @@ export const RenderProfilePic = (
     />
   );
 };
-
 export default function FeedItems({ filterByUser = false, userId = null }) {
   const { userPosts, userDetails } = useApp();
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ export default function FeedItems({ filterByUser = false, userId = null }) {
       <div className="mt-4 flex flex-col gap-4 md:p-4">
         {displayedPosts.length > 0 ? (
           displayedPosts.map((post) => (
-            <div key={post.post_id} className="flex flex-col gap-4">
+            <div key={post.id} className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 {post.profile_author ? (
                   <img
@@ -63,7 +62,7 @@ export default function FeedItems({ filterByUser = false, userId = null }) {
                   <h3>{post.post_author}</h3>
                   <p
                     className="whitespace-pre-wrap"
-                    onClick={() => PostClicked(post.post_id)}
+                    onClick={() => PostClicked(post.id)}
                   >
                     {post.post_text}
                   </p>
@@ -75,15 +74,15 @@ export default function FeedItems({ filterByUser = false, userId = null }) {
                     src={post.post_image}
                     alt="Post Image"
                     className="rounded-md w-full"
-                    onClick={() => PostClicked(post.post_id)}
+                    onClick={() => PostClicked(post.id)}
                   />
                 )}
                 <div className="flex items-center gap-1 mt-2">
-                  <Like postId={post.post_id} />
-                  <Comments postId={post.post_id} />
+                  <Like postId={post.id} />
+                  <Comments postId={post.id} />
 
                   <SharePost
-                    postUrl={`https://connectifi.netlify.app/post/${post.post_id}`}
+                    postUrl={`https://connectiffi.netlify.app/post/${post.id}`}
                   />
                 </div>
               </div>
